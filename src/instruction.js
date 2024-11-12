@@ -1,20 +1,7 @@
 // Constantes para operações (equivalentes aos opcodes em C)
-const MEMSIZE = 1000;
-const LOAD = 10;
-const STORE = 20;
-const READ = 30;
-const WRITE = 40;
-const BRANCH = 50;
-const BRANCHZERO = 51;
-const BRANCHNEG = 52;
-const HALT = 99;
-const ADD = 11;
-const SUBTRACT = 12;
-const MULTIPLY = 13;
-const DIVIDE = 14;
-const REMAINDER = 15;
+import { MEMSIZE, LOAD, STORE, ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, BRANCH, BRANCHNEG, BRANCHZERO, HALT, READ, WRITE } from './constants';
 
-class Instruction {
+export class Instruction {
   constructor(compiler) {
     this.compiler = compiler;
   }

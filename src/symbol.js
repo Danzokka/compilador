@@ -11,7 +11,7 @@ class Symbol {
 }
 
 // Classe SymbolTable para gerenciar a tabela de símbolos
-class SymbolTable {
+export class SymbolTable {
   constructor() {
     this.hashtab = Array(HASHSIZE).fill(null); // Tabela de hash inicializada com null
   }

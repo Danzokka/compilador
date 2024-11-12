@@ -1,4 +1,5 @@
-class Tokenizer {
+/* eslint-disable no-unused-vars */
+export class Tokenizer {
   constructor(input) {
     this.input = input;
     this.current = 0;

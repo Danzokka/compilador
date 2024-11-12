@@ -1,4 +1,6 @@
-class Util {
+import { HASHSIZE } from "./constants.js";
+
+export class Util {
   static syntaxError(compiler, message) {
     console.error(`${compiler.file}:${compiler.line}: error: ${message}`);
     this.cleanup(compiler);

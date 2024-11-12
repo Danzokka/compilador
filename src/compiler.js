@@ -1,10 +1,18 @@
+import { SymbolTable } from './symbolTable';
+import Instruction from './instruction';
+import ExpressionHandler from './expressionHandler';
+import Util from './util';
+import { MEMSIZE, HASHSIZE } from './constants';
+import { Tokenizer } from './token';
+
 class Compiler {
   constructor(filename) {
     this.filename = filename;       // Nome do arquivo de entrada
     this.symbolTable = new SymbolTable(); // Tabela de símbolos
     this.instructionHandler = new Instruction(this); // Gerenciador de instruções
     this.exprHandler = new ExpressionHandler(this); // Gerenciador de expressões
-    this.util = Util;               // Funções utilitárias
+    this.util = new Util();               // Funções utilitárias
+    this.tokenizer = new Tokenizer();     // Analisador léxico
 
     // Propriedades principais
     this.memsize = MEMSIZE;         // Tamanho da memória
@@ -20,12 +28,12 @@ class Compiler {
 
   // Função para obter o próximo token do arquivo de entrada
   getToken() {
-    return tokenizer.getNextToken();
+    return this.tokenizer.getNextToken();
   }
 
   // Função para "devolver" um token ao analisador léxico
   ungetToken(token) {
-    tokenizer.ungetToken(token);
+    this.tokenizer.ungetToken(token);
   }
 
   // Verifica se o tipo de token é o esperado, senão gera um erro

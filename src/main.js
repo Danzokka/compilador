@@ -1,5 +1,9 @@
-compiler = require('./compiler.js');
-class SimpleCompiler {
+import { Compiler } from './compiler.js';
+import { Util } from './util.js';
+import { MEMSIZE, HASHSIZE, STORE, LOAD } from './constants.js';
+import { fs } from 'fs';
+
+export class SimpleCompiler {
   constructor() {
     this.compiler = new Compiler(); // Instância do compilador com todos os atributos necessários
     this.outputFile = "binary.txt"; // Arquivo de saída para o código de máquina gerado
@@ -87,7 +91,6 @@ class SimpleCompiler {
 
   // Escreve o código de máquina gerado no arquivo de saída
   assemble() {
-    const fs = require('fs');
     const data = this.compiler.sml.slice(0, this.compiler.memsize).map(code => `${code}`).join('\n');
     fs.writeFileSync(this.outputFile, data, 'utf8', (err) => {
       if (err) {
@@ -99,7 +102,6 @@ class SimpleCompiler {
   // Função de uso/ajuda para erros de execução
   usage() {
     console.error("usage: simple [-O] [-o file.sml] file.simp");
-    process.exit(1);
   }
 
   // Função principal que controla o fluxo de compilação
@@ -132,5 +134,3 @@ class SimpleCompiler {
 }
 
 // Execução principal
-const compiler = new SimpleCompiler();
-compiler.main(process.argv.slice(2));

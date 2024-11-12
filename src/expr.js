@@ -1,4 +1,4 @@
-class ExpressionHandler {
+export class ExpressionHandler {
   constructor(compiler) {
     this.compiler = compiler;
   }
