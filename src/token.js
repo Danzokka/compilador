@@ -1,9 +1,9 @@
-/* eslint-disable no-unused-vars */
 export class Tokenizer {
   constructor(input) {
     this.input = input;
     this.current = 0;
     this.line = 1;
+    this.lineStart = true;
     this.ungottenToken = { type: 'UNKNOWN', value: null }; // token devolvido, se existir
     this.tokenStrings = {
       ENDOFFILE: "end of file",
@@ -51,7 +51,20 @@ export class Tokenizer {
     }
   }
 
+  // Função para verificar se uma string representa um número
+  isLineNumber(s) {
+    return /^\d+$/.test(s);
+  }
+
+  skipWhitespace() {
+    //console.log(`Próximo caractere: '${this.peek().charCodeAt(0)}'`); // Depuração
+    while (this.peek() === ' ' || this.peek() === '\t' || this.peek().charCodeAt(0) === 13) {
+      this.current++;
+    }
+  }
+
   // Função para obter o próximo token
+  // Obtém o próximo token do input
   getToken() {
     if (this.ungottenToken.type !== 'UNKNOWN') {
       const token = this.ungottenToken;
@@ -59,107 +72,92 @@ export class Tokenizer {
       return token;
     }
 
-    // Ignora espaços em branco
-    while (/\s/.test(this.peek())) {
-      if (this.peek() === '\n') this.line++;
-      this.current++;
+    this.skipWhitespace();
+    const s = [];
+    let c = this.peek();
+
+    // Se estamos no início de uma linha e encontramos um número, tratamos como número de linha
+    if (this.lineStart && /\d/.test(c)) {
+      while (/\d/.test(this.peek())) {
+        s.push(this.nextChar());
+      }
+      this.lineStart = false; // Apenas ignoramos números no início da linha uma vez
+      this.skipWhitespace();
+      return this.getToken(); // Ignora o número de linha e busca o próximo token
     }
 
-    let i = 0;
-    let retval = 'UNKNOWN';
-    const s = [];
+    s.length = 0;
+    c = this.nextChar();
+    this.lineStart = false;  // Depois do primeiro token da linha, não estamos mais no início
 
-    const c = this.nextChar();
     switch (c) {
       case undefined:
-        retval = 'ENDOFFILE';
-        break;
+        return { type: 'ENDOFFILE', value: null };
       case '\n':
-        retval = 'NEWLINE';
         this.line++;
-        break;
+        this.lineStart = true;  // Marca o início de uma nova linha
+        return { type: 'NEWLINE', value: '\n' };
       case '(':
-        retval = 'LEFTPAREN';
-        break;
+        return { type: 'LEFTPAREN', value: '(' };
       case ')':
-        retval = 'RIGHTPAREN';
-        break;
+        return { type: 'RIGHTPAREN', value: ')' };
       case ',':
-        retval = 'COMMA';
-        break;
+        return { type: 'COMMA', value: ',' };
       case ';':
         while (this.peek() !== '\n' && this.peek() !== undefined) this.current++;
-        retval = 'COMMENT';
-        break;
+        return { type: 'COMMENT', value: ';' };
       case '=':
-        s.push(c);
         if (this.peek() === '=') {
-          s.push(this.nextChar());
-          retval = 'RELATIONAL';
-        } else {
-          retval = 'ASSIGNMENT';
+          this.nextChar();
+          return { type: 'RELATIONAL', value: '==' };
         }
-        break;
+        return { type: 'ASSIGNMENT', value: '=' };
       case '!':
-        s.push(c);
         if (this.nextChar() !== '=') {
           this.syntaxError(`unexpected character '${c}'`);
         }
-        s.push('=');
-        retval = 'RELATIONAL';
-        break;
+        return { type: 'RELATIONAL', value: '!=' };
       case '<':
       case '>':
-        s.push(c);
-        if (this.peek() === '=') s.push(this.nextChar());
-        retval = 'RELATIONAL';
-        break;
+        if (this.peek() === '=') {
+          return { type: 'RELATIONAL', value: c + this.nextChar() };
+        }
+        return { type: 'RELATIONAL', value: c };
       default:
         if (this.isArithmetic(c)) {
-          retval = 'ARITHMETIC';
+          return { type: 'ARITHMETIC', value: c };
         } else if (/[a-zA-Z]/.test(c)) {
           s.push(c);
-          let nextChar = this.peek();
-          while (/[a-zA-Z]/.test(nextChar)) {
+          while (/[a-zA-Z]/.test(this.peek())) {
             s.push(this.nextChar());
-            nextChar = this.peek();
           }
-
           const tokenStr = s.join('');
-          if (nextChar === ':') {
-            retval = 'LABEL';
-            this.nextChar();
-          } else if (this.isCommand(tokenStr)) {
-            retval = 'COMMAND';
-          } else {
-            retval = 'VARIABLE';
+          if (this.isCommand(tokenStr)) {
+            return { type: 'COMMAND', value: tokenStr };
           }
+          return { type: 'VARIABLE', value: tokenStr };
         } else if (c === '-' || c === '+' || /\d/.test(c)) {
-          let op = c;
           if (c === '-' || c === '+') {
-            const nextChar = this.peek();
-            if (!/\d/.test(nextChar)) {
-              retval = 'ARITHMETIC';
-            } else {
-              s.push(this.nextChar());
+            if (!/\d/.test(this.peek())) {
+              return { type: 'ARITHMETIC', value: c };
             }
           }
-          s.push(...this.getInt());
-          retval = 'CONSTANT';
+          s.push(c);
+          while (/\d/.test(this.peek())) {
+            s.push(this.nextChar());
+          }
+          return { type: 'CONSTANT', value: s.join('') };
         } else {
           this.syntaxError(`unexpected character '${c}'`);
         }
-        break;
     }
-    return { type: retval, value: s.join('') };
   }
+
 
   // Função para retornar um token
   ungetToken(token) {
     this.ungottenToken = token;
   }
-
-  
 
   // Função auxiliar para capturar um número inteiro
   getInt() {
@@ -177,11 +175,13 @@ export class Tokenizer {
 
   // Função para obter o próximo caractere e avançar
   nextChar() {
+    //console.log(`Avançando para o próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current++];
   }
 
   // Função para ver o próximo caractere sem avançar
   peek() {
+    //console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current];
   }
 }

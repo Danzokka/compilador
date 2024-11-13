@@ -7,6 +7,7 @@ export class Instruction {
   }
 
   getInstruction(command) {
+    //console.log('Command:', command)
     switch (command.toUpperCase()) {
       case "INPUT": return this.commandInput.bind(this);
       case "PRINT": return this.commandPrint.bind(this);
@@ -77,7 +78,9 @@ export class Instruction {
   commandGoto() {
     const { compiler } = this;
     let tok = compiler.getToken();
-    compiler.checkToken("VARIABLE", tok.type);
+    if (tok.type !== "VARIABLE" && tok.type !== "CONSTANT") {
+      compiler.syntaxError(`Expected VARIABLE or CONSTANT after GOTO, but got ${tok.type}`);
+    }
 
     let sym = compiler.symbolTable.lookupSymbol(tok.value);
     let labelAddress = sym ? sym.location : 0;
@@ -88,32 +91,42 @@ export class Instruction {
   }
 
   // Gera instruções para o comando IF
+  // Gera instruções para o comando IF
   commandIf() {
     const { compiler } = this;
+
+    // Obtém a primeira expressão
     const expr1 = compiler.getExpr();
+    //console.log('expr1 if:', expr1);
     const op1 = this.evaluateExpr(expr1);
 
+    // Verifica o operador relacional
     const relop = compiler.getToken();
+    //console.log('Relational Operator:', relop);  // Log do operador relacional para depuração
     compiler.checkToken("RELATIONAL", relop.type);
 
+    // Obtém a segunda expressão
     const expr2 = compiler.getExpr();
+    //console.log('expr2 if:', expr2);
     const op2 = this.evaluateExpr(expr2);
 
-    const comma = compiler.getToken();
-    compiler.checkToken("COMMA", comma.type);
-
+    // Em seguida, espera "GOTO" como comando
     let tok = compiler.getToken();
     if (tok.type === "COMMAND") tok.type = "GOTOKEYWRD";
     compiler.checkToken("GOTOKEYWRD", tok.type);
     compiler.checkCommand("GOTO", tok.value);
 
+    // Obtém o rótulo da variável que é o destino do GOTO
     tok = compiler.getToken();
-    compiler.checkToken("VARIABLE", tok.type);
+    if (tok.type !== "VARIABLE" && tok.type !== "CONSTANT") {
+      compiler.syntaxError(`Expected VARIABLE or CONSTANT after GOTO, but got ${tok.type}`);
+    }
 
     const sym = compiler.symbolTable.lookupSymbol(tok.value);
     const labelAddress = sym ? sym.location : 0;
     if (!sym) compiler.flag[compiler.inscount] = tok.value;
 
+    // Gera as instruções de desvio
     this.generateBranchInstructions(op1, op2, relop.value, labelAddress);
   }
 
@@ -162,10 +175,10 @@ export class Instruction {
     this.compiler.sml[this.compiler.inscount++] = HALT * MEMSIZE;
   }
 
-  // Avalia uma expressão e retorna a localização do resultado
   evaluateExpr(expr) {
     const { compiler } = this;
     const stack = [];
+
     expr.forEach((p) => {
       if (p.type === "num") {
         compiler.sml[compiler.datacount] = p.value;
@@ -189,6 +202,7 @@ export class Instruction {
         stack.push(compiler.datacount--);
       }
     });
+
     return stack.pop();
   }
 }

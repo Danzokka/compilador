@@ -3,45 +3,55 @@ export class ExpressionHandler {
     this.compiler = compiler;
   }
 
-  // Converte uma expressão infixa para pós-fixa e retorna a lista de expressão
   getExpr() {
-    let head = null, tail = null;
+    let head = null;
+    let tail = null;
     const stack = [];
 
     this.push(stack, '(');
     let token = this.compiler.getToken();
+    //console.log('Expression Token:', token)
 
-    while (this.isExpression(token.type)) {
+    while (this.isExpression(token.type) || this.isRelational(token.type)) {
       switch (token.type) {
         case "VARIABLE":
-          this.enqueue({ type: "symb", value: token.value }, head, tail);
+          ({ head, tail } = this.enqueue({ type: "symb", value: token.value }, head, tail));
           break;
         case "CONSTANT":
-          this.enqueue({ type: "num", value: token.value }, head, tail);
+          ({ head, tail } = this.enqueue({ type: "num", value: token.value }, head, tail));
           break;
         case "LEFTPAREN":
           this.push(stack, '(');
           break;
         case "RIGHTPAREN":
-          while (this.isArithmetic(this.top(stack))) {
-            this.enqueue({ type: "op", value: this.pop(stack) }, head, tail);
+          while (this.isArithmetic(this.top(stack)) || this.isRelational(this.top(stack))) {
+            ({ head, tail } = this.enqueue({ type: "op", value: this.pop(stack) }, head, tail));
           }
           if (this.top(stack) === '(') this.pop(stack);
           break;
         case "ARITHMETIC":
-          while (this.isArithmetic(this.top(stack)) &&
+          while ((this.isArithmetic(this.top(stack)) || this.isRelational(this.top(stack))) &&
             this.precedence(this.top(stack)) >= this.precedence(token.value)) {
-            this.enqueue({ type: "op", value: this.pop(stack) }, head, tail);
+            ({ head, tail } = this.enqueue({ type: "op", value: this.pop(stack) }, head, tail));
+          }
+          this.push(stack, token.value);
+          break;
+        case "RELATIONAL":
+          while ((this.isArithmetic(this.top(stack)) || this.isRelational(this.top(stack))) &&
+            this.precedence(this.top(stack)) >= this.precedence(token.value)) {
+            ({ head, tail } = this.enqueue({ type: "op", value: this.pop(stack) }, head, tail));
           }
           this.push(stack, token.value);
           break;
         default:
-          break;
+          this.compiler.ungetToken(token);
+          return this.toArray(head); // Converte a lista encadeada para um array antes de retornar
       }
       token = this.compiler.getToken();
     }
-    while (this.isArithmetic(this.top(stack))) {
-      this.enqueue({ type: "op", value: this.pop(stack) }, head, tail);
+
+    while (this.isArithmetic(this.top(stack)) || this.isRelational(this.top(stack))) {
+      ({ head, tail } = this.enqueue({ type: "op", value: this.pop(stack) }, head, tail));
     }
 
     this.compiler.ungetToken(token);
@@ -50,7 +60,18 @@ export class ExpressionHandler {
       this.compiler.syntaxError(`improper expression, ${this.top(stack)} left`);
     }
 
-    return head;
+    return this.toArray(head); // Converte a lista encadeada para um array antes de retornar
+  }
+
+  // Função auxiliar para converter a lista encadeada em um array
+  toArray(head) {
+    const result = [];
+    let current = head;
+    while (current) {
+      result.push(current);
+      current = current.next;
+    }
+    return result;
   }
 
   // Adiciona um operador ou operando à lista de expressão
@@ -64,7 +85,7 @@ export class ExpressionHandler {
     }
     tail = node;
 
-    return { head, tail };
+    return { head, tail }; // Retorna a lista atualizada
   }
 
   // Empilha um operador na pilha de operadores
@@ -93,10 +114,16 @@ export class ExpressionHandler {
     return ["+", "-", "*", "/", "%"].includes(op);
   }
 
+  // Verifica se um token representa um operador relacional
+  isRelational(op) {
+    return ["==", "!=", "<", "<=", ">", ">="].includes(op);
+  }
+
   // Retorna a precedência do operador
   precedence(op) {
     if (op === "+" || op === "-") return 1;
     if (op === "*" || op === "/" || op === "%") return 2;
+    if (this.isRelational(op)) return 3;
     return 0;
   }
 
@@ -106,4 +133,4 @@ export class ExpressionHandler {
   }
 }
 
-export default ExpressionHandler
+export default ExpressionHandler;

@@ -1,34 +1,41 @@
 import SymbolTable from './symbol.js';
 import Instruction from './instruction.js';
 import ExpressionHandler from './expr.js';
-import Util from './util.js';
+import Utilities from './utilities.js';
 import { MEMSIZE, HASHSIZE } from './constants.js';
 import { Tokenizer } from './token.js';
+import fs from 'fs';
 
 class Compiler {
   constructor(filename) {
-    this.filename = filename;       // Nome do arquivo de entrada
-    this.symbolTable = new SymbolTable(); // Tabela de símbolos
-    this.instructionHandler = new Instruction(this); // Gerenciador de instruções
-    this.exprHandler = new ExpressionHandler(this); // Gerenciador de expressões
-    this.util = new Util();               // Funções utilitárias
-    this.tokenizer = new Tokenizer();     // Analisador léxico
+    this.filename = filename;
+    const input = fs.readFileSync(filename, 'utf8'); // Lê o conteúdo do arquivo
+    this.tokenizer = new Tokenizer(input); // Inicializa o Tokenizer com o conteúdo do arquivo
+
+    // Inicializa as outras partes do compilador
+    this.symbolTable = new SymbolTable();
+    this.instructionHandler = new Instruction(this);
+    this.exprHandler = new ExpressionHandler(this);
+    this.utilities = new Utilities();
 
     // Propriedades principais
-    this.memsize = MEMSIZE;         // Tamanho da memória
-    this.hashtab = Array(HASHSIZE).fill(null); // Tabela de hash para símbolos
-    this.sml = new Array(this.memsize).fill(0); // Código de máquina gerado (instruções SML)
-    this.flag = new Array(this.memsize).fill(null); // Flags para referências de rótulos pendentes
+    this.memsize = MEMSIZE;
+    this.hashtab = Array(HASHSIZE).fill(null);
+    this.sml = new Array(this.memsize).fill(0);
+    this.flag = new Array(this.memsize).fill(null);
 
     // Contadores e informações de controle
-    this.inscount = 0;              // Contador de instruções
-    this.datacount = this.memsize - 1; // Contador de dados
-    this.ln = 1;                    // Linha atual do arquivo em análise
+    this.inscount = 0;
+    this.datacount = this.memsize - 1;
+    this.ln = 1; // Linha atual do arquivo em análise
   }
 
-  // Função para obter o próximo token do arquivo de entrada
+  // Função para obter o próximo token
   getToken() {
-    return this.tokenizer.getNextToken();
+    const token = this.tokenizer.getToken();
+    //console.log('Token:', token)
+    this.ln = this.tokenizer.line; // Atualiza a linha atual no Compiler
+    return token;
   }
 
   // Função para "devolver" um token ao analisador léxico
@@ -39,14 +46,14 @@ class Compiler {
   // Verifica se o tipo de token é o esperado, senão gera um erro
   checkToken(expectedType, actualType) {
     if (expectedType !== actualType) {
-      this.util.syntaxError(this, `${expectedType} expected (got ${actualType})`);
+      this.utilities.syntaxError(this, `${expectedType} expected (got ${actualType})`);
     }
   }
 
   // Verifica se o comando é o esperado, senão gera um erro
   checkCommand(expected, actual) {
     if (expected.toUpperCase() !== actual.toUpperCase()) {
-      this.util.syntaxError(this, `${expected} expected (got ${actual})`);
+      this.utilities.syntaxError(this, `${expected} expected (got ${actual})`);
     }
   }
 
@@ -55,9 +62,9 @@ class Compiler {
     return this.exprHandler.getExpr();
   }
 
-  // Função para finalizar e limpar a memória utilizada pelo compilador
+  // Função para finalizar e limpar a memória utilitiesizada pelo compilador
   cleanup() {
-    this.util.cleanup(this);
+    this.utilities.cleanup(this);
   }
 }
 

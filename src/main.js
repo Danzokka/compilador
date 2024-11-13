@@ -1,13 +1,16 @@
+/* eslint-disable no-unused-vars */
 import Compiler from './compiler.js';
-import Util from './util.js';
+import Utilities from './utilities.js';
 import { MEMSIZE, HASHSIZE, STORE, LOAD } from './constants.js';
 import fs from 'fs';
 
 export class SimpleCompiler {
   constructor() {
-    this.compiler = new Compiler(); // Instância do compilador com todos os atributos necessários
-    this.outputFile = "binary.txt"; // Arquivo de saída para o código de máquina gerado
+    this.outputFile = "code/binary.txt"; // Arquivo de saída para o código de máquina gerado
     this.doOptimize = false;
+    this.filename = "code/source.txt"; // Arquivo de entrada fixo
+    this.compiler = new Compiler(this.filename); // Instância do compilador com todos os atributos necessários
+    this.utilities = new Utilities();
   }
 
   // Função de inicialização
@@ -24,20 +27,20 @@ export class SimpleCompiler {
 
   // Carrega o arquivo e converte comandos em instruções
   populate() {
-    let token;
+    let token
     while ((token = this.compiler.getToken()).type !== "ENDOFFILE") {
+      //console.log('Populate:', token)
       if (token.type === "COMMENT" || token.type === "NEWLINE") continue;
 
       if (token.type === "LABEL") {
         if (this.compiler.symbolTable.lookupSymbol(token.value)) {
-          Util.syntaxError(this.compiler, `redeclaration of ${token.value}`);
+          this.utilities.syntaxError(this.compiler, `redeclaration of ${token.value}`);
         }
         this.compiler.symbolTable.installSymbol(token.value, "label", this.compiler.inscount);
         continue;
       }
-
       this.compiler.checkToken("COMMAND", token.type);
-      const instructionFunction = this.compiler.instruction.getInstruction(token.value);
+      const instructionFunction = this.compiler.instructionHandler.getInstruction(token.value);
       if (instructionFunction) {
         instructionFunction(this.compiler);
       }
@@ -45,10 +48,13 @@ export class SimpleCompiler {
       token = this.compiler.getToken();
       this.compiler.checkToken("NEWLINE", token.type);
 
+      console.log("inscount:", this.compiler.inscount, "datacount:", this.compiler.datacount);
+
       if (this.compiler.inscount > this.compiler.datacount) {
-        Util.compileError(this.compiler, "compilation ran out of memory");
+        this.utilities.compileError(this.compiler, "compilation ran out of memory");
       }
     }
+    console.log("Populate done");
   }
 
   // Otimiza a compilação removendo instruções redundantes
@@ -82,7 +88,7 @@ export class SimpleCompiler {
       if (this.compiler.flag[i] !== null) {
         const sym = this.compiler.symbolTable.lookupSymbol(this.compiler.flag[i]);
         if (!sym || sym.type !== "label") {
-          Util.compileError(this.compiler, `failed to find label ${this.compiler.flag[i]}`);
+          this.utilities.compileError(this.compiler, `failed to find label ${this.compiler.flag[i]}`);
         }
         this.compiler.sml[i] += sym.location;
       }
@@ -94,43 +100,34 @@ export class SimpleCompiler {
     const data = this.compiler.sml.slice(0, this.compiler.memsize).map(code => `${code}`).join('\n');
     fs.writeFileSync(this.outputFile, data, 'utf8', (err) => {
       if (err) {
-        Util.compileError(this.compiler, `cannot open file ${this.outputFile}`);
+        this.utilities.compileError(this.compiler, `cannot open file ${this.outputFile}`);
       }
     });
   }
 
-  // Função de uso/ajuda para erros de execução
-  usage() {
-    console.error("usage: simple [-O] [-o file.sml] file.simp");
-  }
-
   // Função principal que controla o fluxo de compilação
-  main(args) {
-    let i = 0;
-    while (i < args.length) {
-      switch (args[i]) {
-        case '-O':
-          this.doOptimize = true;
-          break;
-        case '-o':
-          this.outputFile = args[++i];
-          break;
-        default:
-          if (args[i].startsWith("-")) this.usage();
-          this.filename = args[i];
-      }
-      i++;
+  main() {
+    // Lê o arquivo source.txt
+    try {
+      const content = fs.readFileSync(this.filename, 'utf8');
+      console.log(`Compilando ${this.filename}...`);
+      this.initialize(this.filename);
+      console.log(`Arquivo ${this.filename} lido com sucesso.`);
+      this.populate();
+      console.log(`População concluída.`);
+      //if (this.doOptimize) this.optimize();
+      this.resolve();
+      console.log(`Resolução de endereços concluída.`);
+      this.assemble();
+      console.log(`Compilação concluída. Código de máquina gerado em ${this.outputFile}`);
+    } catch (error) {
+      console.error(`Erro ao ler o arquivo ${this.filename}:`, error.message);
+    } finally {
+      this.utilities.cleanup(this.compiler);
     }
-
-    if (!this.filename) this.usage();
-
-    this.initialize(this.filename);
-    this.populate();
-    if (this.doOptimize) this.optimize();
-    this.resolve();
-    this.assemble();
-    Util.cleanup(this.compiler);
   }
 }
 
 // Execução principal
+const simpleCompiler = new SimpleCompiler();
+simpleCompiler.main();

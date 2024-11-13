@@ -1,19 +1,23 @@
 import { HASHSIZE } from "./constants.js";
 
-export class Util {
-  static syntaxError(compiler, message) {
+export class Utilities {
+
+  constructor() {
+  }
+
+  syntaxError(compiler, message) {
     console.error(`${compiler.file}:${compiler.line}: error: ${message}`);
     this.cleanup(compiler);
     throw new Error("Syntax Error");
   }
 
-  static compileError(compiler, message) {
+  compileError(compiler, message) {
     console.error(`simple: error: ${message}`);
     this.cleanup(compiler);
     throw new Error("Compile Error");
   }
 
-  static cleanup(compiler) {
+  cleanup(compiler) {
     // Libera a tabela de símbolos
     for (let i = 0; i < HASHSIZE; i++) {
       let symbol = compiler.hashtab[i];
@@ -38,4 +42,4 @@ export class Util {
   }
 }
 
-export default Util;
+export default Utilities;
