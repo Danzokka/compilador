@@ -34,7 +34,6 @@ export class Tokenizer {
 
   // Função auxiliar para verificar se uma string é um comando da linguagem
   isCommand(s) {
-    console.log('isCommand:', s)
     return ['INPUT', 'PRINT', 'LET', 'GOTO', 'IF', 'END'].includes(s.toUpperCase());
   }
 
@@ -192,7 +191,7 @@ export class Tokenizer {
       return '';
     }
 
-    console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
+    //console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current];
   }
 }

@@ -50,14 +50,13 @@ export class SimpleCompiler {
       token = this.compiler.getToken();
       //console.log('Populate:', token)
       this.compiler.checkToken("NEWLINE", token.type);
-      
+
       //console.log('Inscount:', this.compiler.inscount)
       //console.log('Datacount:', this.compiler.datacount)
       if (this.compiler.inscount > this.compiler.datacount) {
         this.utilities.compileError(this.compiler, "compilation ran out of memory");
       }
     }
-    console.log("Populate done");
   }
 
   // Otimiza a compilação removendo instruções redundantes
@@ -87,27 +86,40 @@ export class SimpleCompiler {
 
   // Resolve endereços de memória marcados como incompletos
   resolve() {
+    console.log("Iniciando resolução de rótulos...");
     for (let i = 0; i < this.compiler.memsize; i++) {
+      console.log(`Verificando flags ${this.compiler.flag}`);
       if (this.compiler.flag[i] !== null) {
-        const sym = this.compiler.symbolTable.lookupSymbol(this.compiler.flag[i]);
+        const labelName = this.compiler.flag[i];
+        const sym = this.compiler.symbolTable.lookupSymbol(labelName);
+
+        console.log(`Resolving label '${labelName}' at position ${i}`);
         if (!sym || sym.type !== "label") {
-          this.utilities.compileError(this.compiler, `failed to find label ${this.compiler.flag[i]}`);
+          this.utilities.compileError(this.compiler, `failed to find label ${labelName}`);
+        } else {
+          console.log(`Label '${labelName}' found at location ${sym.location}`);
+          this.compiler.sml[i] += sym.location;
         }
-        this.compiler.sml[i] += sym.location;
       }
     }
+    console.log("Resolução de rótulos concluída.");
   }
 
   // Escreve o código de máquina gerado no arquivo de saída
   assemble() {
-    const data = this.compiler.sml.slice(0, this.compiler.memsize).map(code => `${code}`).join('\n');
+    let data = this.compiler.sml.slice(0, this.compiler.memsize)
+      .filter(code => code !== undefined && !isNaN(code)) // Filtrar NaN e undefined
+      .map(code => `+${code}`)
+      .filter(line => !/^\+?[01]$/.test(line)) // Filtrar linhas que são apenas +0 ou +1
+      .join('\n');
+
     fs.writeFileSync(this.outputFile, data, 'utf8', (err) => {
       if (err) {
         this.utilities.compileError(this.compiler, `cannot open file ${this.outputFile}`);
       }
     });
   }
-
+  
   // Função principal que controla o fluxo de compilação
   main() {
     // Lê o arquivo source.txt
@@ -116,11 +128,13 @@ export class SimpleCompiler {
       console.log(`Compilando ${this.filename}...`);
       this.initialize(this.filename);
       console.log(`Arquivo ${this.filename} lido com sucesso.`);
+      console.log(`Iniciando população...`);
       this.populate();
       console.log(`População concluída.`);
       //if (this.doOptimize) this.optimize();
-      this.resolve();
-      console.log(`Resolução de endereços concluída.`);
+      //console.log(`Iniciando resolução de endereços...`);
+      //this.resolve();
+      //console.log(`Resolução de endereços concluída.`);
       this.assemble();
       console.log(`Compilação concluída. Código de máquina gerado em ${this.outputFile}`);
     } catch (error) {
