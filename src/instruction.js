@@ -1,5 +1,5 @@
 // Constantes para operações (equivalentes aos opcodes em C)
-import { MEMSIZE, LOAD, STORE, ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, BRANCH, BRANCHNEG, BRANCHZERO, HALT, READ, WRITE } from './constants.js';
+import { MEMSIZE, LOAD, STORE, ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULE, BRANCH, BRANCHNEG, BRANCHZERO, HALT, READ, WRITE } from './constants.js';
 
 export class Instruction {
   constructor(compiler) {
@@ -196,7 +196,7 @@ export class Instruction {
           case "-": compiler.sml[compiler.inscount++] = SUBTRACT * MEMSIZE + op2; break;
           case "*": compiler.sml[compiler.inscount++] = MULTIPLY * MEMSIZE + op2; break;
           case "/": compiler.sml[compiler.inscount++] = DIVIDE * MEMSIZE + op2; break;
-          case "%": compiler.sml[compiler.inscount++] = REMAINDER * MEMSIZE + op2; break;
+          case "%": compiler.sml[compiler.inscount++] = MODULE * MEMSIZE + op2; break;
         }
         compiler.sml[compiler.inscount++] = STORE * MEMSIZE + compiler.datacount;
         stack.push(compiler.datacount--);

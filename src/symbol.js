@@ -21,7 +21,7 @@ export class SymbolTable {
     for (let i = 0; i < name.length; i++) {
       hashval = name.charCodeAt(i) + 31 * hashval;
     }
-    return hashval % HASHSIZE;
+    return Math.abs(hashval % HASHSIZE);
   }
 
   // Procura um símbolo na tabela de símbolos

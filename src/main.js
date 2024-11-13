@@ -28,7 +28,7 @@ export class SimpleCompiler {
   // Carrega o arquivo e converte comandos em instruções
   populate() {
     let token
-    while ((token = this.compiler.getToken()).type !== "ENDOFFILE") {
+    while ((token = this.compiler.getToken()).value.toUpperCase() !== "END") {
       //console.log('Populate:', token)
       if (token.type === "COMMENT" || token.type === "NEWLINE") continue;
 
@@ -42,14 +42,17 @@ export class SimpleCompiler {
       this.compiler.checkToken("COMMAND", token.type);
       const instructionFunction = this.compiler.instructionHandler.getInstruction(token.value);
       if (instructionFunction) {
+        //console.log('Entrando')
         instructionFunction(this.compiler);
+        //console.log('Saiu')
       }
 
       token = this.compiler.getToken();
+      //console.log('Populate:', token)
       this.compiler.checkToken("NEWLINE", token.type);
-
-      console.log("inscount:", this.compiler.inscount, "datacount:", this.compiler.datacount);
-
+      
+      //console.log('Inscount:', this.compiler.inscount)
+      //console.log('Datacount:', this.compiler.datacount)
       if (this.compiler.inscount > this.compiler.datacount) {
         this.utilities.compileError(this.compiler, "compilation ran out of memory");
       }

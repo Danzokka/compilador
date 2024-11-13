@@ -34,6 +34,7 @@ export class Tokenizer {
 
   // Função auxiliar para verificar se uma string é um comando da linguagem
   isCommand(s) {
+    console.log('isCommand:', s)
     return ['INPUT', 'PRINT', 'LET', 'GOTO', 'IF', 'END'].includes(s.toUpperCase());
   }
 
@@ -58,8 +59,10 @@ export class Tokenizer {
 
   skipWhitespace() {
     //console.log(`Próximo caractere: '${this.peek().charCodeAt(0)}'`); // Depuração
-    while (this.peek() === ' ' || this.peek() === '\t' || this.peek().charCodeAt(0) === 13) {
-      this.current++;
+    while (this.peek() === ' ' || this.peek() === '\t' || this.peek().charCodeAt(0) === 13 ) {
+      if (this.peek() != undefined){
+        this.current++;
+      }
     }
   }
 
@@ -175,13 +178,21 @@ export class Tokenizer {
 
   // Função para obter o próximo caractere e avançar
   nextChar() {
+    if (this.current >= this.input.length) {
+      return undefined;
+    }
     //console.log(`Avançando para o próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current++];
   }
 
   // Função para ver o próximo caractere sem avançar
   peek() {
-    //console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
+
+    if (this.current == this.input.length) {
+      return '';
+    }
+
+    console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current];
   }
 }

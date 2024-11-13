@@ -1,17 +1,17 @@
 export const MEMSIZE = 1000;
-export const LOAD = 10;
-export const STORE = 20;
-export const READ = 30;
-export const WRITE = 40;
-export const BRANCH = 50;
-export const BRANCHZERO = 51;
-export const BRANCHNEG = 52;
-export const HALT = 99;
-export const ADD = 11;
-export const SUBTRACT = 12;
-export const MULTIPLY = 13;
-export const DIVIDE = 14;
-export const REMAINDER = 15;
+export const READ = 10;
+export const WRITE = 11;
+export const LOAD = 20;
+export const STORE = 21;
+export const ADD = 30;
+export const SUBTRACT = 31;
+export const MULTIPLY = 32;
+export const DIVIDE = 33;
+export const MODULE = 34;
+export const BRANCH = 40;
+export const BRANCHNEG = 41;
+export const BRANCHZERO = 42;
+export const HALT = 43;
 export const HASHSIZE = 211;
 
 export default {
@@ -29,5 +29,5 @@ export default {
   SUBTRACT,
   MULTIPLY,
   DIVIDE,
-  REMAINDER,
+  MODULE,
 };
