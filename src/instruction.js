@@ -1,5 +1,5 @@
 // Constantes para operações (equivalentes aos opcodes em C)
-import { MEMSIZE, LOAD, STORE, ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, BRANCH, BRANCHNEG, BRANCHZERO, HALT, READ, WRITE } from './constants';
+import { MEMSIZE, LOAD, STORE, ADD, SUBTRACT, MULTIPLY, DIVIDE, REMAINDER, BRANCH, BRANCHNEG, BRANCHZERO, HALT, READ, WRITE } from './constants.js';
 
 export class Instruction {
   constructor(compiler) {
@@ -192,3 +192,5 @@ export class Instruction {
     return stack.pop();
   }
 }
+
+export default Instruction;

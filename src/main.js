@@ -1,7 +1,7 @@
-import { Compiler } from './compiler.js';
-import { Util } from './util.js';
+import Compiler from './compiler.js';
+import Util from './util.js';
 import { MEMSIZE, HASHSIZE, STORE, LOAD } from './constants.js';
-import { fs } from 'fs';
+import fs from 'fs';
 
 export class SimpleCompiler {
   constructor() {

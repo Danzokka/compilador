@@ -1,9 +1,9 @@
-import { SymbolTable } from './symbolTable';
-import Instruction from './instruction';
-import ExpressionHandler from './expressionHandler';
-import Util from './util';
-import { MEMSIZE, HASHSIZE } from './constants';
-import { Tokenizer } from './token';
+import SymbolTable from './symbol.js';
+import Instruction from './instruction.js';
+import ExpressionHandler from './expr.js';
+import Util from './util.js';
+import { MEMSIZE, HASHSIZE } from './constants.js';
+import { Tokenizer } from './token.js';
 
 class Compiler {
   constructor(filename) {

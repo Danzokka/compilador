@@ -1,5 +1,4 @@
-const HASHSIZE = 101; // Tamanho da tabela hash, para consistência com o código C
-
+const HASHSIZE = 101; // Tamanho da tabela de hash
 // Classe Symbol para representar um símbolo (label ou variável)
 class Symbol {
   constructor(name, type, location) {
@@ -53,3 +52,5 @@ export class SymbolTable {
     return symbol; // Retorna o símbolo (novo ou existente)
   }
 }
+
+export default SymbolTable

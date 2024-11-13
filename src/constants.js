@@ -1,19 +1,21 @@
-const MEMSIZE = 1000;
-const LOAD = 10;
-const STORE = 20;
-const READ = 30;
-const WRITE = 40;
-const BRANCH = 50;
-const BRANCHZERO = 51;
-const BRANCHNEG = 52;
-const HALT = 99;
-const ADD = 11;
-const SUBTRACT = 12;
-const MULTIPLY = 13;
-const DIVIDE = 14;
-const REMAINDER = 15;
+export const MEMSIZE = 1000;
+export const LOAD = 10;
+export const STORE = 20;
+export const READ = 30;
+export const WRITE = 40;
+export const BRANCH = 50;
+export const BRANCHZERO = 51;
+export const BRANCHNEG = 52;
+export const HALT = 99;
+export const ADD = 11;
+export const SUBTRACT = 12;
+export const MULTIPLY = 13;
+export const DIVIDE = 14;
+export const REMAINDER = 15;
+export const HASHSIZE = 211;
 
-export {
+export default {
+  HASHSIZE,
   MEMSIZE,
   LOAD,
   STORE,

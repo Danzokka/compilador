@@ -105,3 +105,5 @@ export class ExpressionHandler {
     return ["CONSTANT", "ARITHMETIC", "VARIABLE", "LEFTPAREN", "RIGHTPAREN"].includes(type);
   }
 }
+
+export default ExpressionHandler
