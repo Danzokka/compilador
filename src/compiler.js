@@ -10,10 +10,10 @@ class Compiler {
   constructor(filename) {
     this.filename = filename;
     const input = fs.readFileSync(filename, 'utf8'); // Lê o conteúdo do arquivo
-    this.tokenizer = new Tokenizer(input); // Inicializa o Tokenizer com o conteúdo do arquivo
-
+    
     // Inicializa as outras partes do compilador
     this.symbolTable = new SymbolTable();
+    this.tokenizer = new Tokenizer(input, this.symbolTable); // Inicializa o Tokenizer com o conteúdo do arquivo
     this.instructionHandler = new Instruction(this);
     this.exprHandler = new ExpressionHandler(this);
     this.utilities = new Utilities();

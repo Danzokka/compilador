@@ -1,4 +1,4 @@
-export const MEMSIZE = 99;
+export const MEMSIZE = 100;
 export const READ = 10;
 export const WRITE = 11;
 export const LOAD = 20;

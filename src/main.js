@@ -13,6 +13,8 @@ export class SimpleCompiler {
     this.utilities = new Utilities();
   }
 
+  //First Pass
+
   // Função de inicialização
   initialize(filename) {
     this.compiler.hashtab = new Array(HASHSIZE).fill(null);
@@ -23,6 +25,25 @@ export class SimpleCompiler {
     this.compiler.ln = 1;
     this.compiler.inscount = 0;
     this.compiler.datacount = this.compiler.memsize - 1;
+  }
+
+  firstPassWithRegex(input) {
+    const lines = input.split('\n');
+    let instructionCounter = 0;
+
+    lines.forEach(line => {
+      const match = line.match(/^\s*(\d+)\s+/);  // Captura o primeiro número seguido de espaço
+      if (match) {
+        const label = match[1];
+        // Se o label ainda não foi registrado, adiciona com o endereço atual
+        if (!this.compiler.symbolTable.lookupSymbol(label)) {
+          console.log(`Registrando label ${label} no endereço ${instructionCounter}`);
+          this.compiler.symbolTable.installSymbol(label, "label", instructionCounter);
+        }
+      }
+      // Incrementa o contador de instruções para cada linha processada
+      instructionCounter++;
+    });
   }
 
   // Carrega o arquivo e converte comandos em instruções
@@ -128,6 +149,8 @@ export class SimpleCompiler {
       console.log(`Compilando ${this.filename}...`);
       this.initialize(this.filename);
       console.log(`Arquivo ${this.filename} lido com sucesso.`);
+      console.log(`Iniciando primeira passagem...`);
+      this.firstPassWithRegex(this.compiler.tokenizer.input);
       console.log(`Iniciando população...`);
       this.populate();
       console.log(`População concluída.`);

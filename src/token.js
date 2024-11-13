@@ -1,5 +1,5 @@
 export class Tokenizer {
-  constructor(input) {
+  constructor(input, symbolTable) {
     this.input = input;
     this.current = 0;
     this.line = 1;
@@ -23,6 +23,7 @@ export class Tokenizer {
       RIGHTPAREN: "right parenthesis",
       UNKNOWN: "unknown token"
     };
+    this.symbolTable = symbolTable;
   }
 
   // Função auxiliar para verificar precedência dos operadores aritméticos
@@ -78,15 +79,19 @@ export class Tokenizer {
     const s = [];
     let c = this.peek();
 
-    // Se estamos no início de uma linha e encontramos um número, tratamos como número de linha
+    // Identificar número da linha como uma label
     if (this.lineStart && /\d/.test(c)) {
       while (/\d/.test(this.peek())) {
         s.push(this.nextChar());
       }
-      this.lineStart = false; // Apenas ignoramos números no início da linha uma vez
+      this.lineStart = false;
+
+      const lineNumber = s.join('');
+      this.symbolTable.installSymbol(lineNumber, "label", this.line); // Registra a label com o endereço atual
       this.skipWhitespace();
-      return this.getToken(); // Ignora o número de linha e busca o próximo token
+      return this.getToken();
     }
+
 
     s.length = 0;
     c = this.nextChar();
