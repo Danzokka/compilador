@@ -33,7 +33,6 @@ class Compiler {
   // Função para obter o próximo token
   getToken() {
     const token = this.tokenizer.getToken();
-    //console.log('Token from getToken():', token)
     this.ln = this.tokenizer.line; // Atualiza a linha atual no Compiler
     return token;
   }

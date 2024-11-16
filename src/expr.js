@@ -10,7 +10,6 @@ export class ExpressionHandler {
 
     this.push(stack, '(');
     let token = this.compiler.getToken();
-    //console.log('Expression Token:', token)
 
     while (this.isExpression(token.type) || this.isRelational(token.type)) {
       switch (token.type) {

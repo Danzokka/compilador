@@ -58,7 +58,6 @@ export class Tokenizer {
   }
 
   skipWhitespace() {
-    //console.log(`Próximo caractere: '${this.peek().charCodeAt(0)}'`); // Depuração
     while (this.peek() === ' ' || this.peek() === '\t' || this.peek().charCodeAt(0) === 13 ) {
       if (this.peek() != undefined){
         this.current++;
@@ -185,7 +184,6 @@ export class Tokenizer {
     if (this.current >= this.input.length) {
       return undefined;
     }
-    //console.log(`Avançando para o próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current++];
   }
 
@@ -196,7 +194,6 @@ export class Tokenizer {
       return '';
     }
 
-    //console.log(`Próximo caractere: '${this.input[this.current]}'`); // Depuração
     return this.input[this.current];
   }
 }

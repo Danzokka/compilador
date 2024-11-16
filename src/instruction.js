@@ -18,24 +18,6 @@ export class Instruction {
     }
   }
 
-  calculateIncrement(operation) {
-    switch (operation) {
-      case "LET":
-        return 2; // LOAD + STORE
-      case "INPUT":
-      case "PRINT":
-        return 1; // Apenas uma operação READ ou WRITE
-      case "GOTO":
-        return 1; // Apenas um branch
-      case "IF":
-        return 3; // Incremento mínimo (LOAD + SUBTRACT + BRANCH), ajustado no caso de relacional
-      case "END":
-        return 1; // Apenas HALT
-      default:
-        return 0;
-    }
-  }
-
   // Gera instruções para o comando LET
   commandLet() {
     const { compiler } = this;
@@ -55,8 +37,6 @@ export class Instruction {
 
     compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + resultLocation;
     compiler.sml[compiler.inscount++] = STORE * MEMSIZE + varLocation;
-
-    compiler.inscount += this.calculateIncrement("LET");
   }
 
   // Gera instruções para o comando INPUT
@@ -71,16 +51,11 @@ export class Instruction {
       if (!sym) {
         // Se a variável não existe, cria um novo símbolo
         sym = compiler.symbolTable.installSymbol(tok.value, "variable", compiler.datacount--);
-      } else {
-        console.log(`Using existing address for ${tok.value} at location ${sym.location}`);
       }
-
       compiler.sml[compiler.inscount++] = READ * MEMSIZE + sym.location;
     } while ((tok = compiler.getToken()).type === "COMMA");
 
     compiler.ungetToken(tok);
-
-    compiler.inscount += this.calculateIncrement("INPUT");
   }
 
   // Gera instruções para o comando PRINT
@@ -93,9 +68,7 @@ export class Instruction {
 
       let sym = compiler.symbolTable.lookupSymbol(tok.value);
       if (!sym) {
-        compiler.syntaxError(`'${tok.value}' undeclared`);
-      } else {
-        console.log(`Using existing address for ${tok.value} at location ${sym.location}`);
+        compiler.syntaxError(`'${tok.value}' não declarado`);
       }
 
       compiler.sml[compiler.inscount++] = WRITE * MEMSIZE + sym.location;
@@ -143,9 +116,7 @@ export class Instruction {
       compiler.syntaxError(`Expected VARIABLE or CONSTANT after GOTO, but got ${tok.type}`);
     }
 
-    console.log(`Token value: ${tok.value}`);
     const sym = compiler.symbolTable.lookupSymbol(tok.value);
-    console.log(`Procura do if: ${sym}`);
     const labelAddress = sym ? sym.location : 0;
     if (!sym) compiler.flag[compiler.inscount] = tok.value;
 

@@ -1,5 +1,7 @@
 10 input n
-15 if n < 0 goto 45
+15 if n < 0 goto 30
 20 let n = 1
+25 goto 45
+30 let n = 2
 45 print n
 55 end

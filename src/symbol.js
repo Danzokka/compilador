@@ -15,9 +15,6 @@ export class SymbolTable {
 
   // Procura um símbolo na tabela de símbolos
   lookupSymbol(name) {
-    //console.log('Lookup:', name)
-    //console.log('Typeod:', typeof name)
-		console.log('Symbols:', this.symbols)
     return this.symbols[name] || null; // Retorna o símbolo ou null se não encontrado
   }
 

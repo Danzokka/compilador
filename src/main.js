@@ -39,7 +39,6 @@ export class SimpleCompiler {
         const label = labelMatch[1];
         // Registra o label com o endereço atual
         if (!this.compiler.symbolTable.lookupSymbol(label)) {
-          console.log(`Registrando label ${label} no endereço ${instructionCounter}`);
           this.compiler.symbolTable.installSymbol(label, "label", instructionCounter);
         }
       }
@@ -51,6 +50,8 @@ export class SimpleCompiler {
         switch (command) {
           case "INPUT":
           case "PRINT":
+            instructionCounter += 1; // INPUT e PRINT geram apenas 1 instrução
+            break;
           case "LET":
             instructionCounter += 2; // Esses comandos geram 2 instruções
             break;
@@ -59,6 +60,7 @@ export class SimpleCompiler {
             break;
           case "IF":
             // Para o IF, precisamos identificar o operador relacional para determinar o número de instruções
+            // eslint-disable-next-line no-case-declarations
             const relationalMatch = line.match(/(==|!=|<=|>=|<|>)/);
             if (relationalMatch) {
               const operator = relationalMatch[1];
@@ -80,16 +82,12 @@ export class SimpleCompiler {
         }
       }
     });
-
-    console.log("Passagem inicial concluída. Tabela de símbolos:");
-    console.log(this.compiler.symbolTable.symbols);
   }
 
   // Carrega o arquivo e converte comandos em instruções
   populate() {
-    let token
+    let token;
     while ((token = this.compiler.getToken()).value.toUpperCase() !== "END") {
-      //console.log('Populate:', token)
       if (token.type === "COMMENT" || token.type === "NEWLINE") continue;
 
       if (token.type === "LABEL") {
@@ -102,20 +100,21 @@ export class SimpleCompiler {
       this.compiler.checkToken("COMMAND", token.type);
       const instructionFunction = this.compiler.instructionHandler.getInstruction(token.value);
       if (instructionFunction) {
-        //console.log('Entrando')
         instructionFunction(this.compiler);
-        //console.log('Saiu')
       }
 
       token = this.compiler.getToken();
-      //console.log('Populate:', token)
       this.compiler.checkToken("NEWLINE", token.type);
 
-      //console.log('Inscount:', this.compiler.inscount)
-      //console.log('Datacount:', this.compiler.datacount)
       if (this.compiler.inscount > this.compiler.datacount) {
         this.utilities.compileError(this.compiler, "compilation ran out of memory");
       }
+    }
+
+    // Adiciona o comando HALT ao encontrar "END"
+    const instructionFunction = this.compiler.instructionHandler.getInstruction("END");
+    if (instructionFunction) {
+      instructionFunction(this.compiler);
     }
   }
 
@@ -146,23 +145,18 @@ export class SimpleCompiler {
 
   // Resolve endereços de memória marcados como incompletos
   resolve() {
-    console.log("Iniciando resolução de rótulos...");
     for (let i = 0; i < this.compiler.memsize; i++) {
-      console.log(`Verificando flags ${this.compiler.flag}`);
       if (this.compiler.flag[i] !== null) {
         const labelName = this.compiler.flag[i];
         const sym = this.compiler.symbolTable.lookupSymbol(labelName);
 
-        console.log(`Resolving label '${labelName}' at position ${i}`);
         if (!sym || sym.type !== "label") {
-          this.utilities.compileError(this.compiler, `failed to find label ${labelName}`);
+          this.utilities.compileError(this.compiler, `falha ao encontrar label ${labelName}`);
         } else {
-          console.log(`Label '${labelName}' found at location ${sym.location}`);
           this.compiler.sml[i] += sym.location;
         }
       }
     }
-    console.log("Resolução de rótulos concluída.");
   }
 
   // Escreve o código de máquina gerado no arquivo de saída
@@ -187,16 +181,8 @@ export class SimpleCompiler {
       const content = fs.readFileSync(this.filename, 'utf8');
       console.log(`Compilando ${this.filename}...`);
       this.initialize(this.filename);
-      console.log(`Arquivo ${this.filename} lido com sucesso.`);
-      console.log(`Iniciando primeira passagem...`);
       this.firstPassWithRegex(this.compiler.tokenizer.input);
-      console.log(`Iniciando população...`);
       this.populate();
-      console.log(`População concluída.`);
-      //if (this.doOptimize) this.optimize();
-      //console.log(`Iniciando resolução de endereços...`);
-      //this.resolve();
-      //console.log(`Resolução de endereços concluída.`);
       this.assemble();
       console.log(`Compilação concluída. Código de máquina gerado em ${this.outputFile}`);
     } catch (error) {
