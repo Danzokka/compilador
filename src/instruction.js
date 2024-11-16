@@ -33,7 +33,6 @@ export class Instruction {
     compiler.checkToken("ASSIGNMENT", tok.type);
 
     const expr = compiler.getExpr();
-    console.log(expr);
     const resultLocation = this.evaluateExpr(expr);
 
     compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + resultLocation;
