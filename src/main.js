@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-escape */
+/* eslint-disable no-case-declarations */
 /* eslint-disable no-unused-vars */
 import Compiler from './compiler.js';
 import Utilities from './utilities.js';
@@ -49,17 +51,27 @@ export class SimpleCompiler {
         // Incrementa o contador de instruções com base no comando
         switch (command) {
           case "INPUT":
+            instructionCounter += 2; // Estes geram apenas 1 instrução
+            break;
           case "PRINT":
           case "END":
-          case 'GOTO':
-            instructionCounter += 1; // INPUT e PRINT geram apenas 1 instrução
+          case "GOTO":
+            instructionCounter += 1; // Estes geram apenas 1 instrução
             break;
           case "LET":
-            instructionCounter += 2; // Esses comandos geram 2 instruções
+            // Verifica se a expressão no LET é simples ou composta
+            const exprMatch = line.match(/LET\s+\w+\s*=\s*([^\n]+)/i);
+            if (exprMatch) {
+              const expr = exprMatch[1].trim();
+              if (/[\+\-\*\/]/.test(expr)) {
+                instructionCounter += 4; // Expressões compostas geram 3 instruções
+              } else {
+                instructionCounter += 2; // Expressões simples geram 2 instruções
+              }
+            }
             break;
           case "IF":
-            // Para o IF, precisamos identificar o operador relacional para determinar o número de instruções
-            // eslint-disable-next-line no-case-declarations
+            // Identifica o operador relacional para determinar o número de instruções
             const relationalMatch = line.match(/(==|!=|<=|>=|<|>)/);
             if (relationalMatch) {
               const operator = relationalMatch[1];
@@ -79,6 +91,7 @@ export class SimpleCompiler {
       }
     });
   }
+
 
   // Carrega o arquivo e converte comandos em instruções
   populate() {
