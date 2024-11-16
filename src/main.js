@@ -92,7 +92,7 @@ export class SimpleCompiler {
 
       if (token.type === "LABEL") {
         if (this.compiler.symbolTable.lookupSymbol(token.value)) {
-          this.utilities.syntaxError(this.compiler, `redeclaration of ${token.value}`);
+          this.utilities.syntaxError(this.compiler, `redeclaração de ${token.value}`);
         }
         this.compiler.symbolTable.installSymbol(token.value, "label", this.compiler.inscount);
         continue;
@@ -163,13 +163,16 @@ export class SimpleCompiler {
   assemble() {
     let data = this.compiler.sml.slice(0, this.compiler.memsize)
       .filter(code => code !== undefined && !isNaN(code)) // Filtrar NaN e undefined
-      .map(code => `+${code}`)
+      .map(code => {
+        const codeStr = code.toString();
+        return (codeStr.startsWith('+') || codeStr.startsWith('-')) ? codeStr : `+${codeStr}`;
+      })
       //.filter(line => !/^\+?[01]$/.test(line)) // Filtrar linhas que são apenas +0 ou +1
       .join('\n');
 
     fs.writeFileSync(this.outputFile, data, 'utf8', (err) => {
       if (err) {
-        this.utilities.compileError(this.compiler, `cannot open file ${this.outputFile}`);
+        this.utilities.compileError(this.compiler, `não foi possivel salvar o arquivo ${this.outputFile}`);
       }
     });
   }

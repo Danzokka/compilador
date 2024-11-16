@@ -82,7 +82,7 @@ export class Instruction {
     const { compiler } = this;
     let tok = compiler.getToken();
     if (tok.type !== "VARIABLE" && tok.type !== "CONSTANT") {
-      compiler.syntaxError(`Expected VARIABLE or CONSTANT after GOTO, but got ${tok.type}`);
+      compiler.syntaxError(`Esperado VARIABLE ou CONSTANT após GOTO, recebido ${tok.type}`);
     }
 
     let sym = compiler.symbolTable.lookupSymbol(tok.value);
@@ -113,7 +113,7 @@ export class Instruction {
 
     tok = compiler.getToken();
     if (tok.type !== "VARIABLE" && tok.type !== "CONSTANT") {
-      compiler.syntaxError(`Expected VARIABLE or CONSTANT after GOTO, but got ${tok.type}`);
+      compiler.syntaxError(`Esperado VARIABLE ou CONSTANT após GOTO, recebido ${tok.type}`);
     }
 
     const sym = compiler.symbolTable.lookupSymbol(tok.value);
@@ -170,24 +170,43 @@ export class Instruction {
     const { compiler } = this;
     const stack = [];
 
-    expr.forEach((p) => {
+    expr.forEach((p, index) => {
       if (p.type === "num") {
-        compiler.sml[compiler.datacount] = p.value;
-        stack.push(compiler.datacount--);
+        // Verifica se o próximo elemento é um operador "-" sem um próximo elemento válido
+        const next = expr[index + 1];
+        if (next && next.type === "op" && next.value === "-" && (!expr[index + 2] || expr[index + 2].type !== "num")) {
+          const value = -Math.abs(parseInt(p.value, 10)); // Converte para negativo
+          compiler.sml[compiler.datacount] = value;
+          stack.push(compiler.datacount--);
+        } else {
+          const value = parseInt(p.value, 10);
+          compiler.sml[compiler.datacount] = value;
+          stack.push(compiler.datacount--);
+        }
       } else if (p.type === "symb") {
         const sym = compiler.symbolTable.lookupSymbol(p.value);
-        if (!sym) compiler.syntaxError(`'${p.value}' undeclared`);
+        if (!sym) compiler.syntaxError(`'${p.value}' não declarado`);
         stack.push(sym.location);
       } else {
         const op2 = stack.pop();
         const op1 = stack.pop();
         compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + op1;
         switch (p.value) {
-          case "+": compiler.sml[compiler.inscount++] = ADD * MEMSIZE + op2; break;
-          case "-": compiler.sml[compiler.inscount++] = SUBTRACT * MEMSIZE + op2; break;
-          case "*": compiler.sml[compiler.inscount++] = MULTIPLY * MEMSIZE + op2; break;
-          case "/": compiler.sml[compiler.inscount++] = DIVIDE * MEMSIZE + op2; break;
-          case "%": compiler.sml[compiler.inscount++] = MODULE * MEMSIZE + op2; break;
+          case "+":
+            compiler.sml[compiler.inscount++] = ADD * MEMSIZE + op2;
+            break;
+          case "-":
+            compiler.sml[compiler.inscount++] = SUBTRACT * MEMSIZE + op2;
+            break;
+          case "*":
+            compiler.sml[compiler.inscount++] = MULTIPLY * MEMSIZE + op2;
+            break;
+          case "/":
+            compiler.sml[compiler.inscount++] = DIVIDE * MEMSIZE + op2;
+            break;
+          case "%":
+            compiler.sml[compiler.inscount++] = MODULE * MEMSIZE + op2;
+            break;
         }
         compiler.sml[compiler.inscount++] = STORE * MEMSIZE + compiler.datacount;
         stack.push(compiler.datacount--);

@@ -120,7 +120,7 @@ export class Tokenizer {
         return { type: 'ASSIGNMENT', value: '=' };
       case '!':
         if (this.nextChar() !== '=') {
-          this.syntaxError(`unexpected character '${c}'`);
+          this.syntaxError(`Caractere inesperado '${c}'`);
         }
         return { type: 'RELATIONAL', value: '!=' };
       case '<':
@@ -154,7 +154,7 @@ export class Tokenizer {
           }
           return { type: 'CONSTANT', value: s.join('') };
         } else {
-          this.syntaxError(`unexpected character '${c}'`);
+          this.syntaxError(`Caractere inesperado '${c}'`);
         }
     }
   }

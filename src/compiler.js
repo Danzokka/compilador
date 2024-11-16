@@ -45,14 +45,14 @@ class Compiler {
   // Verifica se o tipo de token é o esperado, senão gera um erro
   checkToken(expectedType, actualType) {
     if (expectedType !== actualType) {
-      this.utilities.syntaxError(this, `${expectedType} expected (got ${actualType})`);
+      this.utilities.syntaxError(this, `${expectedType} esperado (recebido ${actualType})`);
     }
   }
 
   // Verifica se o comando é o esperado, senão gera um erro
   checkCommand(expected, actual) {
     if (expected.toUpperCase() !== actual.toUpperCase()) {
-      this.utilities.syntaxError(this, `${expected} expected (got ${actual})`);
+      this.utilities.syntaxError(this, `${expected} esperado (recebido ${actual})`);
     }
   }
 

@@ -56,7 +56,7 @@ export class ExpressionHandler {
     this.compiler.ungetToken(token);
 
     if (stack.length > 1 || this.top(stack) !== '(') {
-      this.compiler.syntaxError(`improper expression, ${this.top(stack)} left`);
+      this.compiler.syntaxError(`Expressão impropria, ${this.top(stack)}`);
     }
 
     return this.toArray(head); // Converte a lista encadeada para um array antes de retornar
