@@ -33,6 +33,7 @@ export class Instruction {
     compiler.checkToken("ASSIGNMENT", tok.type);
 
     const expr = compiler.getExpr();
+    console.log(expr);
     const resultLocation = this.evaluateExpr(expr);
 
     compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + resultLocation;
@@ -170,29 +171,32 @@ export class Instruction {
     const { compiler } = this;
     const stack = [];
 
-    expr.forEach((p, index) => {
-      if (p.type === "num") {
-        // Verifica se o próximo elemento é um operador "-" sem um próximo elemento válido
-        const next = expr[index + 1];
-        if (next && next.type === "op" && next.value === "-" && (!expr[index + 2] || expr[index + 2].type !== "num")) {
-          const value = -Math.abs(parseInt(p.value, 10)); // Converte para negativo
-          compiler.sml[compiler.datacount] = value;
+    for (let i = 0; i < expr.length; i++) {
+      const current = expr[i];
+
+      if (current.type === "num") {
+        // Verifica se o número é precedido por um operador "-" para torná-lo negativo
+        if (i + 1 < expr.length && expr[i + 1].type === "op" && expr[i + 1].value === "-") {
+          const value = -Math.abs(parseInt(current.value, 10)); // Converte para negativo
+          compiler.sml[compiler.datacount] = value; // Salva o valor na memória
           stack.push(compiler.datacount--);
+          i++; // Pula o operador "-" já processado
         } else {
-          const value = parseInt(p.value, 10);
-          compiler.sml[compiler.datacount] = value;
+          const value = parseInt(current.value, 10);
+          compiler.sml[compiler.datacount] = value; // Salva o valor na memória
           stack.push(compiler.datacount--);
         }
-      } else if (p.type === "symb") {
-        const sym = compiler.symbolTable.lookupSymbol(p.value);
-        console.log(sym);
-        if (!sym) compiler.syntaxError(`'${p.value}' não declarado`);
+      } else if (current.type === "symb") {
+        // Trata variáveis
+        const sym = compiler.symbolTable.lookupSymbol(current.value);
+        if (!sym) compiler.syntaxError(`'${current.value}' não declarado`);
         stack.push(sym.location);
       } else {
+        // Trata operadores (caso geral)
         const op2 = stack.pop();
         const op1 = stack.pop();
         compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + op1;
-        switch (p.value) {
+        switch (current.value) {
           case "+":
             compiler.sml[compiler.inscount++] = ADD * MEMSIZE + op2;
             break;
@@ -212,10 +216,11 @@ export class Instruction {
         compiler.sml[compiler.inscount++] = STORE * MEMSIZE + compiler.datacount;
         stack.push(compiler.datacount--);
       }
-    });
+    }
 
     return stack.pop();
   }
+
 }
 
 export default Instruction;

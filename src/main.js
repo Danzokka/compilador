@@ -47,7 +47,6 @@ export class SimpleCompiler {
 
       if (commandMatch) {
         const command = commandMatch[1].toUpperCase();
-        console.log(`${command} instrução: ${instructionCounter}`);
         // Incrementa o contador de instruções com base no comando
         switch (command) {
           case "PRINT":
@@ -61,10 +60,15 @@ export class SimpleCompiler {
             const exprMatch = line.match(/LET\s+\w+\s*=\s*([^\n]+)/i);
             if (exprMatch) {
               const expr = exprMatch[1].trim();
-              if (/[\+\-\*\/]/.test(expr)) {
-                instructionCounter += 5; // Expressões compostas geram 3 instruções
+              if (/^[+-]?\d+$/.test(expr)) {
+                // Expressão simples como LET b = -2
+                instructionCounter += 2;
+              } else if (/[\+\-\*\/]/.test(expr)) {
+                // Expressão composta como LET b = a + 2
+                instructionCounter += 5;
               } else {
-                instructionCounter += 2; // Expressões simples geram 2 instruções
+                console.warn(`Expressão desconhecida no LET: ${expr}`);
+                instructionCounter += 2; // Padrão de segurança
               }
             }
             break;
@@ -89,6 +93,7 @@ export class SimpleCompiler {
       }
     });
   }
+
 
 
   // Carrega o arquivo e converte comandos em instruções

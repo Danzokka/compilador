@@ -1,6 +1,13 @@
 10 input n
-30 let c = n + 10
-40 if c < 20 goto 60
-50 let c = 70
-60 print c
+15 if n <= 0 goto 60
+20 let a = 0
+25 let b = 1
+30 if n == 0 goto 70
+35 print b
+40 let b = b + a
+45 let a = b - a
+50 let n = n - 1
+55 goto 30
+60 let b = -1
+65 print b
 70 end
