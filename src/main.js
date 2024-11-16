@@ -47,13 +47,11 @@ export class SimpleCompiler {
 
       if (commandMatch) {
         const command = commandMatch[1].toUpperCase();
-
+        console.log(`${command} instrução: ${instructionCounter}`);
         // Incrementa o contador de instruções com base no comando
         switch (command) {
-          case "INPUT":
-            instructionCounter += 2; // Estes geram apenas 1 instrução
-            break;
           case "PRINT":
+          case "INPUT":
           case "END":
           case "GOTO":
             instructionCounter += 1; // Estes geram apenas 1 instrução
@@ -64,7 +62,7 @@ export class SimpleCompiler {
             if (exprMatch) {
               const expr = exprMatch[1].trim();
               if (/[\+\-\*\/]/.test(expr)) {
-                instructionCounter += 4; // Expressões compostas geram 3 instruções
+                instructionCounter += 5; // Expressões compostas geram 3 instruções
               } else {
                 instructionCounter += 2; // Expressões simples geram 2 instruções
               }
