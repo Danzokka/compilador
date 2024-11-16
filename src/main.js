@@ -32,18 +32,57 @@ export class SimpleCompiler {
     let instructionCounter = 0;
 
     lines.forEach(line => {
-      const match = line.match(/^\s*(\d+)\s+/);  // Captura o primeiro número seguido de espaço
-      if (match) {
-        const label = match[1];
-        // Se o label ainda não foi registrado, adiciona com o endereço atual
+      const labelMatch = line.match(/^\s*(\d+)\s+/); // Captura o número do label
+      const commandMatch = line.match(/^\s*\d+\s+([A-Za-z]+)/); // Captura o comando após o número
+
+      if (labelMatch) {
+        const label = labelMatch[1];
+        // Registra o label com o endereço atual
         if (!this.compiler.symbolTable.lookupSymbol(label)) {
           console.log(`Registrando label ${label} no endereço ${instructionCounter}`);
           this.compiler.symbolTable.installSymbol(label, "label", instructionCounter);
         }
       }
-      // Incrementa o contador de instruções para cada linha processada
-      instructionCounter++;
+
+      if (commandMatch) {
+        const command = commandMatch[1].toUpperCase();
+
+        // Incrementa o contador de instruções com base no comando
+        switch (command) {
+          case "INPUT":
+          case "PRINT":
+          case "LET":
+            instructionCounter += 2; // Esses comandos geram 2 instruções
+            break;
+          case "GOTO":
+            instructionCounter += 1; // GOTO gera apenas 1 instrução
+            break;
+          case "IF":
+            // Para o IF, precisamos identificar o operador relacional para determinar o número de instruções
+            const relationalMatch = line.match(/(==|!=|<=|>=|<|>)/);
+            if (relationalMatch) {
+              const operator = relationalMatch[1];
+              if (operator === "==" || operator === "!=") {
+                instructionCounter += 4; // Gera 4 instruções
+              } else {
+                instructionCounter += 3; // Gera 3 instruções
+              }
+            } else {
+              console.error(`Operador relacional não encontrado no comando IF: ${line}`);
+            }
+            break;
+          case "END":
+            instructionCounter += 1; // END gera apenas 1 instrução (HALT)
+            break;
+          default:
+            console.warn(`Comando desconhecido encontrado: ${command}`);
+            break;
+        }
+      }
     });
+
+    console.log("Passagem inicial concluída. Tabela de símbolos:");
+    console.log(this.compiler.symbolTable.symbols);
   }
 
   // Carrega o arquivo e converte comandos em instruções
@@ -131,7 +170,7 @@ export class SimpleCompiler {
     let data = this.compiler.sml.slice(0, this.compiler.memsize)
       .filter(code => code !== undefined && !isNaN(code)) // Filtrar NaN e undefined
       .map(code => `+${code}`)
-      .filter(line => !/^\+?[01]$/.test(line)) // Filtrar linhas que são apenas +0 ou +1
+      //.filter(line => !/^\+?[01]$/.test(line)) // Filtrar linhas que são apenas +0 ou +1
       .join('\n');
 
     fs.writeFileSync(this.outputFile, data, 'utf8', (err) => {

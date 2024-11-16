@@ -18,6 +18,24 @@ export class Instruction {
     }
   }
 
+  calculateIncrement(operation) {
+    switch (operation) {
+      case "LET":
+        return 2; // LOAD + STORE
+      case "INPUT":
+      case "PRINT":
+        return 1; // Apenas uma operação READ ou WRITE
+      case "GOTO":
+        return 1; // Apenas um branch
+      case "IF":
+        return 3; // Incremento mínimo (LOAD + SUBTRACT + BRANCH), ajustado no caso de relacional
+      case "END":
+        return 1; // Apenas HALT
+      default:
+        return 0;
+    }
+  }
+
   // Gera instruções para o comando LET
   commandLet() {
     const { compiler } = this;
@@ -37,6 +55,8 @@ export class Instruction {
 
     compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + resultLocation;
     compiler.sml[compiler.inscount++] = STORE * MEMSIZE + varLocation;
+
+    compiler.inscount += this.calculateIncrement("LET");
   }
 
   // Gera instruções para o comando INPUT
@@ -59,6 +79,8 @@ export class Instruction {
     } while ((tok = compiler.getToken()).type === "COMMA");
 
     compiler.ungetToken(tok);
+
+    compiler.inscount += this.calculateIncrement("INPUT");
   }
 
   // Gera instruções para o comando PRINT
