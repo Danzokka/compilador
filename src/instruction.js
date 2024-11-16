@@ -169,7 +169,6 @@ export class Instruction {
   evaluateExpr(expr) {
     const { compiler } = this;
     const stack = [];
-    console.log(expr);
 
     for (let i = 0; i < expr.length; i++) {
       const current = expr[i];
