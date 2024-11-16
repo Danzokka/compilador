@@ -169,13 +169,17 @@ export class Instruction {
   evaluateExpr(expr) {
     const { compiler } = this;
     const stack = [];
+    console.log(expr);
 
     for (let i = 0; i < expr.length; i++) {
       const current = expr[i];
 
       if (current.type === "num") {
         // Verifica se o número é precedido por um operador "-" para torná-lo negativo
-        if (i + 1 < expr.length && expr[i + 1].type === "op" && expr[i + 1].value === "-") {
+        if (
+          (i === 0 || expr[i - 1].type === "op") && // Está no início ou após um operador
+          (i + 1 < expr.length && expr[i + 1].type === "op" && expr[i + 1].value === "-" && expr[i + 1].next == null)
+        ) {
           const value = -Math.abs(parseInt(current.value, 10)); // Converte para negativo
           compiler.sml[compiler.datacount] = value; // Salva o valor na memória
           stack.push(compiler.datacount--);
@@ -186,11 +190,25 @@ export class Instruction {
           stack.push(compiler.datacount--);
         }
       } else if (current.type === "symb") {
-        // Trata variáveis
-        const sym = compiler.symbolTable.lookupSymbol(current.value);
-        if (!sym) compiler.syntaxError(`'${current.value}' não declarado`);
-        stack.push(sym.location);
-      } else {
+        // Verifica se é uma variável precedida por um operador "-"
+        if (
+          (i === 0 || expr[i - 1].type === "op") && // Está no início ou após um operador
+          (i + 1 < expr.length && expr[i + 1].type === "op" && expr[i + 1].value === "-" && expr[i + 1].next == null)
+        ) {
+          const sym = compiler.symbolTable.lookupSymbol(current.value);
+          if (!sym) compiler.syntaxError(`'${current.value}' não declarado`);
+          const location = sym.location;
+          compiler.sml[compiler.inscount++] = LOAD * MEMSIZE + location;
+          compiler.sml[compiler.inscount++] = SUBTRACT * MEMSIZE + location; // Faz o valor negativo
+          compiler.sml[compiler.inscount++] = STORE * MEMSIZE + compiler.datacount;
+          stack.push(compiler.datacount--);
+          i++; // Pula o operador "-" já processado
+        } else {
+          const sym = compiler.symbolTable.lookupSymbol(current.value);
+          if (!sym) compiler.syntaxError(`'${current.value}' não declarado`);
+          stack.push(sym.location);
+        }
+      } else if (current.type === "op") {
         // Trata operadores (caso geral)
         const op2 = stack.pop();
         const op1 = stack.pop();
@@ -219,6 +237,7 @@ export class Instruction {
 
     return stack.pop();
   }
+
 
 }
 
