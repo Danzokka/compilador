@@ -50,13 +50,12 @@ export class SimpleCompiler {
         switch (command) {
           case "INPUT":
           case "PRINT":
+          case "END":
+          case 'GOTO':
             instructionCounter += 1; // INPUT e PRINT geram apenas 1 instrução
             break;
           case "LET":
             instructionCounter += 2; // Esses comandos geram 2 instruções
-            break;
-          case "GOTO":
-            instructionCounter += 1; // GOTO gera apenas 1 instrução
             break;
           case "IF":
             // Para o IF, precisamos identificar o operador relacional para determinar o número de instruções
@@ -64,7 +63,7 @@ export class SimpleCompiler {
             const relationalMatch = line.match(/(==|!=|<=|>=|<|>)/);
             if (relationalMatch) {
               const operator = relationalMatch[1];
-              if (operator === "==" || operator === "!=") {
+              if (operator === "!=" || operator === "<=" || operator === ">=") {
                 instructionCounter += 4; // Gera 4 instruções
               } else {
                 instructionCounter += 3; // Gera 3 instruções
@@ -72,9 +71,6 @@ export class SimpleCompiler {
             } else {
               console.error(`Operador relacional não encontrado no comando IF: ${line}`);
             }
-            break;
-          case "END":
-            instructionCounter += 1; // END gera apenas 1 instrução (HALT)
             break;
           default:
             console.warn(`Comando desconhecido encontrado: ${command}`);
@@ -176,7 +172,7 @@ export class SimpleCompiler {
       }
     });
   }
-  
+
   // Função principal que controla o fluxo de compilação
   main() {
     // Lê o arquivo source.txt

@@ -185,6 +185,7 @@ export class Instruction {
         }
       } else if (p.type === "symb") {
         const sym = compiler.symbolTable.lookupSymbol(p.value);
+        console.log(sym);
         if (!sym) compiler.syntaxError(`'${p.value}' não declarado`);
         stack.push(sym.location);
       } else {
