@@ -67,7 +67,6 @@ export class SimpleCompiler {
                 // Expressão composta como LET b = a + 2
                 instructionCounter += 5;
               } else {
-                console.warn(`Expressão desconhecida no LET: ${expr}`);
                 instructionCounter += 2; // Padrão de segurança
               }
             }

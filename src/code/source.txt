@@ -1,14 +1,16 @@
 10 input n
-15 if n <= 0 goto 65
+15 if n < 0 goto 75
 20 let a = 0
 25 let b = 1
-30 let s = 0
-35 if n == 0 goto 70
-40 let s = s + b
-45 let b = b + a
-50 let a = b - a
-55 let n = n - 1
-60 goto 35
-65 let s = -1
-70 print s
-75 end
+30 let c = 1
+35 print a
+40 if n < 1 goto 85
+45 let x = a + b
+50 let a = b
+55 let b = c
+60 let c = c + x
+65 let n = n - 1
+70 goto 35
+75 let a = -1
+80 print a
+85 end
